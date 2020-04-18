@@ -12,10 +12,10 @@ class Database {
 private:
     const char *offset_file;
     const char *entries_file;
-public:
     size_t total_entries;
     size_t get_offset(size_t id);
     void write_offset(size_t offset, size_t index);
+public:
     Database(const char *offset_file, const char *entries_file);
     void add(const Robot& robot);
     void remove(size_t id);

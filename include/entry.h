@@ -16,7 +16,7 @@ struct Entry {
     Robot robot;
 };
 
-void dump(std::ostream& os, const Entry& entry);
-Entry load(std::istream& is);
+std::ostream& operator<<(std::ostream& os, const Entry& entry);
+std::istream& operator>>(std::istream& is, Entry& entry);
 
 #endif

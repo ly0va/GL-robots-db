@@ -2,6 +2,7 @@
 #include <fstream>
 
 const auto BIN_APP = std::ofstream::binary | std::ofstream::app;
+const auto BIN_IN = std::ofstream::binary | std::ofstream::in;
 
 Database::Database(const char *offset_file, const char *entries_file):
     offset_file(offset_file), entries_file(entries_file) {
@@ -29,7 +30,7 @@ size_t Database::get_offset(size_t id) {
 }
 
 void Database::write_offset(size_t offset, size_t index) {
-    std::ofstream offsets(offset_file, BIN_APP);
+    std::ofstream offsets(offset_file, BIN_IN);
     const uint8_t size = sizeof(size_t);
     offsets.seekp(index*size);
     offsets.write(reinterpret_cast<char*>(&offset), size);
@@ -40,7 +41,7 @@ void Database::add(const Robot& robot) {
     std::ofstream entries(entries_file, BIN_APP);
     long offset = entries.tellp();
     Entry entry = {false, total_entries, robot};
-    dump(entries, entry);
+    entries << entry;
     entries.close();
     write_offset(offset, total_entries++);
 }
@@ -50,31 +51,48 @@ Entry Database::find(size_t id) {
     size_t offset = get_offset(id);
     std::ifstream entries(entries_file, std::ifstream::binary);
     entries.seekg(offset);
-    Entry entry = load(entries);
+    Entry entry;
+    entries >> entry;
     entries.close();
     return entry;
 }
 
 void Database::remove(size_t id) {
     size_t offset = get_offset(id);
-    std::ofstream entries(entries_file, BIN_APP);
+    std::ofstream entries(entries_file, BIN_IN);
     entries.seekp(offset);
-    char deleted = true;
+    char deleted = 1;
     entries.write(&deleted, 1);
     entries.close();
     // TODO: check if the entry is already deleted
+    // TODO: check if id is out of range
     // notice, we DO NOT decrement total_entries
 }
 
 std::vector<Entry> Database::find_all(Predicate p) {
     std::ifstream entries(entries_file, std::ifstream::binary);
+    entries.seekg(0, std::ios::end);
+    long len = entries.tellg();
+    entries.seekg(0, std::ios::beg);
     std::vector<Entry> result;
-    for (size_t id = 0; id < total_entries; id++) {
-        Entry entry = load(entries);
+    while (entries.tellg() < len) {
+        Entry entry;
+        entries >> entry;
         if (!entry.deleted && p(entry.robot)) {
             result.push_back(entry);
         }
     }
     entries.close();
     return result;
+}
+
+void Database::update(size_t id, const Robot& robot) {
+    // TODO: check if id is deleted or out of range
+    remove(id);
+    std::ofstream entries(entries_file, BIN_APP);
+    long offset = entries.tellp();
+    Entry entry = {false, id, robot};
+    entries << entry;
+    entries.close();
+    write_offset(offset, id);
 }

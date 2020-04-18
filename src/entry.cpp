@@ -5,13 +5,13 @@ template<typename T> void write(std::ostream& os, T obj) {
     os.write(reinterpret_cast<char*>(&obj), sizeof(T));
 }
 
-void dump(std::ostream& os, const Entry& robot) {
+std::ostream& operator<<(std::ostream& os, const Entry& robot) {
     write(os, robot.deleted);
     write(os, robot.id);
     write(os, robot.robot.price);
     write(os, robot.robot.weight);
     write(os, robot.robot.name.size());
-    os << robot.robot.name;
+    return os << robot.robot.name;
 }
 
 template<typename T> T read(std::istream& is) {
@@ -29,12 +29,11 @@ template<> std::string read<std::string>(std::istream& is) {
     return result;
 }
 
-Entry load(std::istream& is) {
-    Entry entry;
+std::istream& operator>>(std::istream& is, Entry& entry) {
     entry.deleted = read<bool>(is);
     entry.id = read<size_t>(is);
     entry.robot.price = read<int32_t>(is);
     entry.robot.weight = read<float>(is);
     entry.robot.name = read<std::string>(is);
-    return entry;
+    return is;
 }
