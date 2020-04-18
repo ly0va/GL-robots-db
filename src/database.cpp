@@ -1,43 +1,19 @@
 #include "database.h"
 #include <fstream>
-#include <algorithm>
 
-template<typename T> void write(std::ostream& os, T obj) {
-    os.write(reinterpret_cast<char*>(&obj), sizeof(T));
-}
-
-void dump(std::ostream& os, const Robot& robot) {
-    write(os, robot.deleted);
-    write(os, robot.id);
-    write(os, robot.price);
-    write(os, robot.weight);
-    write(os, robot.name.size());
-    os << robot.name;
-}
-
-template<typename T> T read(std::ifstream& is) {
-    char buffer[sizeof(T)];
-    is.read(buffer, sizeof(T));
-    return *reinterpret_cast<T*>(buffer);
-}
-
-template<> std::string read<std::string>(std::ifstream& is) {
-    size_t len = read<size_t>(is);
-    char *buffer = new char[len];
-    is.read(buffer, len);
-    std::string result(buffer, buffer+len);
-    delete[] buffer;
-    return result;
-}
-
-Robot load(std::ifstream& is) {
-    Robot robot;
-    robot.deleted = read<bool>(is);
-    robot.id      = read<size_t>(is);
-    robot.price   = read<int32_t>(is);
-    robot.weight  = read<float>(is);
-    robot.name    = read<std::string>(is);
-    return robot;
+Database::Database(const char *offset_file, const char *entries_file):
+    offset_file(offset_file), entries_file(entries_file) {
+        std::ofstream offsets(offset_file, std::ofstream::binary | std::ofstream::app);
+        std::ofstream entries(entries_file, std::ofstream::binary | std::ofstream::app);
+        if (!offsets.is_open()) {
+            throw std::runtime_error("Unable to open offsets_file");
+        }
+        if (!entries.is_open()) {
+            throw std::runtime_error("Unable to open entries_file");
+        }
+        total_entries = (size_t)offsets.tellp()/sizeof(size_t);
+        offsets.close();
+        entries.close();
 }
 
 size_t Database::get_offset(size_t id) {
@@ -57,14 +33,14 @@ size_t Database::get_offset(size_t id) {
     return *offset;
 }
 
-void Database::write_offset(size_t offset, size_t index, bool append) {
-    std::ofstream offsets(offset_file, std::ofstream::binary);
+void Database::write_offset(size_t offset, size_t index) {
+    std::ofstream offsets(offset_file, std::ofstream::binary | std::ofstream::app);
     if (!offsets.is_open()) {
         throw std::runtime_error("Unable to open offsets_file");
     }
     const uint8_t size = sizeof(size_t);
-    offsets.seekp(append ? offsets.end : index*size);
-    if (!append && (size_t)offsets.tellp() != index*size) {
+    offsets.seekp(index*size);
+    if ((size_t)offsets.tellp() != index*size) {
         throw std::runtime_error("Unable to find the offset");
     }
     offsets.write(reinterpret_cast<char*>(&offset), size);
@@ -72,25 +48,26 @@ void Database::write_offset(size_t offset, size_t index, bool append) {
 }
 
 void Database::add(const Robot& robot) {
-    std::ofstream robots(entries_file, std::ofstream::app);
-    if (!robots.is_open()) {
+    std::ofstream entries(entries_file, std::ofstream::binary | std::ofstream::app);
+    if (!entries.is_open()) {
         throw std::runtime_error("Unable to open entries_file");
     }
-    long offset = robots.tellp();
-    dump(robots, robot);
-    robots.close();
-    write_offset(offset, 0, true);
+    long offset = entries.tellp();
+    Entry entry = {false, total_entries, robot};
+    dump(entries, entry);
+    entries.close();
+    write_offset(offset, total_entries++);
 }
 
-Robot Database::find(size_t id) {
+Entry Database::find(size_t id) {
     size_t offset = get_offset(id);
-    std::ifstream robots(entries_file, std::ifstream::binary);
-    if (!robots.is_open()) {
+    std::ifstream entries(entries_file, std::ifstream::binary);
+    if (!entries.is_open()) {
         throw std::runtime_error("Unable to open entries_file");
     }
-    robots.seekg(offset);
-    Robot robot = load(robots);
-    robots.close();
-    return robot;
+    entries.seekg(offset);
+    Entry entry = load(entries);
+    entries.close();
+    return entry;
 }
 

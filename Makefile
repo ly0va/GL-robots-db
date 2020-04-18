@@ -27,7 +27,7 @@ obj :
 	mkdir $@
 
 clean : 
-	$(RM) -r obj main
+	$(RM) -r obj server client *.db
 
 .PHONY : clean all
 
