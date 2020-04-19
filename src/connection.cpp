@@ -7,7 +7,7 @@ const double EPS = 1e-8;
 
 Json::Value to_json(const Entry& entry) {
     Json::Value root;
-    root["id"] = entry.id;
+    root["id"] = (int32_t)entry.id;
     root["price"] = entry.robot.price;
     root["weight"] = entry.robot.weight;
     root["name"] = entry.robot.name;

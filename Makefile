@@ -3,8 +3,8 @@ SRC := $(wildcard src/*.cpp)
 OBJ := $(SRC:src/%.cpp=obj/%.o)
 HEADER := $(wildcard include/*.h)
 
-# preprocessor flags
-CPPFLAGS := -Iinclude
+# preprocessor flags, second one for ubuntu
+CPPFLAGS := -Iinclude -I/usr/include/jsoncpp
 
 # compiler flags
 CXXFLAGS := -Wall -O2
