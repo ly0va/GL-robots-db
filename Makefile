@@ -3,8 +3,12 @@ SRC := $(wildcard src/$(BINARY)/*.cpp)
 OBJ := $(SRC:src/$(BINARY)/%.cpp=obj/$(BINARY)/%.o)
 HEADER := $(wildcard include/*.h)
 
-# preprocessor flags, second one is for ubuntu
-CPPFLAGS := -Iinclude -I/usr/include/jsoncpp
+# preprocessor flags
+CPPFLAGS := -Iinclude
+# ubuntu has headers in another directory
+ifeq ($(shell uname -n),ubuntu)
+	CPPFLAGS += -I/usr/include/jsoncpp
+endif
 
 # compiler flags
 CXXFLAGS := -O2 -Wall -Wno-deprecated-declarations
