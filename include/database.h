@@ -21,7 +21,7 @@ public:
     void remove(size_t id);
     void update(size_t id, const Robot& robot);
     Entry find(size_t id);
-    std::vector<Entry> find_all(Predicate p);
+    std::vector<Entry> find_all(const Predicate& p);
 };
 
 #endif

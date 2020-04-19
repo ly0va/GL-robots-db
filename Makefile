@@ -10,7 +10,7 @@ CPPFLAGS := -Iinclude
 CXXFLAGS := -Wall -O2
 
 # additional linked libraries
-# LDLIBS := -lzmq -ljsoncpp
+LDLIBS := -lzmq -ljsoncpp
 
 # linker flags
 LDFLAGS := -s

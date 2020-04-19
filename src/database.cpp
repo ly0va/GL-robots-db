@@ -69,7 +69,7 @@ void Database::remove(size_t id) {
     // notice, we DO NOT decrement total_entries
 }
 
-std::vector<Entry> Database::find_all(Predicate p) {
+std::vector<Entry> Database::find_all(const Predicate& p) {
     std::ifstream entries(entries_file, std::ifstream::binary);
     entries.seekg(0, std::ios::end);
     long len = entries.tellg();
