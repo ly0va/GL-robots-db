@@ -1,7 +1,7 @@
 *.o
 *.db
-.clangd
-server
-client
-compile_commands.json
-TODO
+/.clangd
+/server
+/client
+/compile_commands.json
+/TODO
