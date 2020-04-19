@@ -5,10 +5,12 @@
 
 int main() {
     Database db("offsets.db", "robots.db");
+    db.add({123, 3.1415, "Bender"});
+    db.add({100500, 2.71828, "Wall-e"});
     DBConnection db_connection(db);
     zmq::context_t context(1);
     zmq::socket_t socket(context, ZMQ_REP);
-    socket.bind("tcp://*:5555");
+    socket.bind("tcp://*:31111");
     while (true) {
         zmq::message_t req;
         socket.recv(&req);

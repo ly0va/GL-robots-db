@@ -1,5 +1,6 @@
 #include "database.h"
 #include <fstream>
+#include <iostream>
 
 const auto BIN_APP = std::ofstream::binary | std::ofstream::app;
 const auto BIN_IN = std::ofstream::binary | std::ofstream::in;
@@ -15,6 +16,7 @@ Database::Database(const char *offset_file, const char *entries_file):
             throw std::runtime_error("Unable to open entries_file");
         }
         total_entries = (size_t)offsets.tellp()/sizeof(size_t);
+        std::clog << "Found " << total_entries << " existing entries\n";
         offsets.close();
         entries.close();
 }
@@ -44,6 +46,7 @@ void Database::add(const Robot& robot) {
     entries << entry;
     entries.close();
     write_offset(offset, total_entries++);
+    std::clog << "Added a new robot\n";
 }
 
 Entry Database::find(size_t id) {
@@ -54,6 +57,7 @@ Entry Database::find(size_t id) {
     Entry entry;
     entries >> entry;
     entries.close();
+    std::clog << "Found an entry\n";
     return entry;
 }
 
@@ -64,6 +68,7 @@ void Database::remove(size_t id) {
     char deleted = 1;
     entries.write(&deleted, 1);
     entries.close();
+    std::clog << "Removed an entry\n";
     // TODO: check if the entry is already deleted
     // TODO: check if id is out of range
     // notice, we DO NOT decrement total_entries
@@ -83,6 +88,7 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
         }
     }
     entries.close();
+    std::clog << "Found " << result.size() << " entries\n";
     return result;
 }
 
@@ -95,4 +101,5 @@ void Database::update(size_t id, const Robot& robot) {
     entries << entry;
     entries.close();
     write_offset(offset, id);
+    std::clog << "Updated an entry\n";
 }

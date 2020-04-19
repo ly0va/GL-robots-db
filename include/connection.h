@@ -16,6 +16,8 @@ private:
     Json::Value update(const Json::Value& command);
     Json::Value find(const Json::Value& command);
     Json::Value find_all(const Json::Value& command);
+    Json::Reader reader;
+    Json::FastWriter writer;
     Database& db;
 };
 

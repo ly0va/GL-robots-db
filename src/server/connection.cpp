@@ -91,15 +91,13 @@ Json::Value DBConnection::find_all(const Json::Value& argument) {
 }
 
 std::string DBConnection::process(const std::string& request) {
-    Json::Reader reader;
     Json::Value command;
+    Json::Value response;
     if (!reader.parse(request, command)) {
         return "{\"status\": 400}";
     }
     std::string command_type = command["command"].asString();
     Json::Value argument = command["arg"];
-    Json::FastWriter writer;
-    Json::Value response;
          if (command_type == "add")      response = add(argument);
     else if (command_type == "remove")   response = remove(argument);
     else if (command_type == "update")   response = update(argument);
