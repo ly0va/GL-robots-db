@@ -1,6 +1,6 @@
 # Simple Robots Database
 
-Simple databse that can store robots. Made during GlobalLogic C++ practice.
+Simple one-table database that can store robots. Made during GlobalLogic C++ practice.
 
 ## Installation
 
@@ -29,3 +29,17 @@ make
 ## Usage
 
 TODO
+
+
+## Efficiency
+
+Let S be the size of the entry, and T be the total size of the Database. 
+Then, time efficiency of the operations can be expressed as
+
+| Add  | Delete | Update | Find by id | Find by field |
+| ---- | ------ | ------ | ---------- | ------------- |
+| O(S) | O(1)   | O(S)   | O(S)       | O(T)          |
+
+As per space, whole database is stored in 2 files (instead of 1 file per entry), 
+so there is practically no overhead due to file system block sizes.
+
