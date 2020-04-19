@@ -3,7 +3,7 @@
 #include <cmath>
 #include <json/json.h>
 
-const double EPS = 1e-8;
+const double EPS = 1e-7;
 
 Json::Value to_json(const Entry& entry) {
     Json::Value root;
@@ -44,7 +44,6 @@ Json::Value DBConnection::remove(const Json::Value& argument) { // TODO: catch e
     return root;
 }
 
-
 Json::Value DBConnection::update(const Json::Value& argument) { // TODO: catch errors
     size_t id = argument["id"].asLargestUInt();
     Robot robot = from_json(argument);
@@ -77,6 +76,8 @@ Json::Value DBConnection::find_all(const Json::Value& argument) {
         predicate = [&](const Robot& r) {
             return fabs(r.weight - argument["weight"].asFloat()) < EPS;
         };
+    } else {
+        predicate = [](const Robot& r) { return true; };
     }
     std::vector<Entry> found = db.find_all(predicate);
     Json::Value root;
