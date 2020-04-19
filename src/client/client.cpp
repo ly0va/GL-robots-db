@@ -17,26 +17,63 @@ Client::Client(std::string host, std::string port):
         std::string address = "tcp://" + host + ":" + port;
         std::cout << "Conntecting to " << address << "...\n";
         socket.connect(address);
-        std::cout << "Welcome to the RobotsDB!\nType a command ('help' for help)\n";
 }
 
 void Client::mainloop() {
     std::string cmd;
-    std::cout << ">> ";
-    std::getline(std::cin, cmd);
-    if (cmd == "help") {
-        std::cout << HELP;
-    } else if (cmd == "ping") {
-        ping();
-    } else if (cmd == "quit" || std::cin.eof()) {
-        exit(0);
-    } else if (cmd != "") {
-        std::cerr << "Invalid command\n";
-    }
+    std::cout << "Welcome to the RobotsDB!\n"
+              << "Type a command ('help' for help)\n";
+    do {
+        std::cout << ">> ";
+        std::getline(std::cin, cmd);
+        if (cmd == "help") {
+            std::cout << HELP;
+        } else if (cmd == "ping") {
+            ping();
+        } else if (cmd == "find") {
+            find();
+        } else if (cmd == "remove") {
+            remove();
+        } else if (cmd != "" && cmd != "quit") {
+            std::cerr << "Invalid command\n";
+        }
+    } while (cmd != "quit" && !std::cin.eof());
 }
 
 void Client::ping() {
-    std::string request_str = "{\"command\": \"ping\"}";
+    std::string request_str = "{\"command\":\"ping\"}";
+    zmq::message_t request(request_str.size());
+    memcpy(request.data(), request_str.c_str(), request_str.size());
+    socket.send(request);
+    zmq::message_t reply;
+    socket.recv(&reply);
+    std::string reply_str(static_cast<char*>(reply.data()), reply.size());
+    std::cout << reply_str << '\n';
+}
+
+void Client::find() {
+    std::cout << "ID (int): ";
+    std::string id_str;
+    std::getline(std::cin, id_str);
+    size_t id = std::stoull(id_str); // JANKY way to check for validity;
+    std::string request_str = "{\"command\":\"find\",\"arg\":" 
+                                    + std::to_string(id) + "}";
+    zmq::message_t request(request_str.size());
+    memcpy(request.data(), request_str.c_str(), request_str.size());
+    socket.send(request);
+    zmq::message_t reply;
+    socket.recv(&reply);
+    std::string reply_str(static_cast<char*>(reply.data()), reply.size());
+    std::cout << reply_str << '\n';
+}
+
+void Client::remove() {
+    std::cout << "ID (int): ";
+    std::string id_str;
+    std::getline(std::cin, id_str);
+    size_t id = std::stoull(id_str); // JANKY way to check for validity;
+    std::string request_str = "{\"command\":\"remove\",\"arg\":" 
+                                    + std::to_string(id) + "}";
     zmq::message_t request(request_str.size());
     memcpy(request.data(), request_str.c_str(), request_str.size());
     socket.send(request);
