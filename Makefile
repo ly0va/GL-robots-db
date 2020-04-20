@@ -20,6 +20,7 @@ LDLIBS := -lzmq -ljsoncpp
 LDFLAGS := -s
 
 all : 
+	$(RM) *.db
 	$(MAKE) BINARY=client client
 	$(MAKE) BINARY=server server
 

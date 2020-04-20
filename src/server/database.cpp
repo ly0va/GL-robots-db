@@ -39,6 +39,10 @@ void Database::write_offset(size_t offset, size_t index) {
     offsets.close();
 }
 
+size_t Database::get_total_entries() {
+    return total_entries;
+}
+
 void Database::add(const Robot& robot) {
     std::ofstream entries(entries_file, BIN_APP);
     long offset = entries.tellp();

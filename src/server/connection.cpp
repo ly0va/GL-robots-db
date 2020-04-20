@@ -33,6 +33,7 @@ Json::Value DBConnection::add(const Json::Value& argument) {
     db.add(robot);
     Json::Value root;
     root["status"] = 200;
+    root["result"] = db.get_total_entries()-1;
     return root;
 }
 
@@ -82,7 +83,7 @@ Json::Value DBConnection::find_all(const Json::Value& argument) {
     std::vector<Entry> found = db.find_all(predicate);
     Json::Value root;
     root["status"] = 200;
-    root["result"] = Json::Value(Json::arrayValue);
+    root["result"] = Json::arrayValue;
     root["result"].resize(found.size());
     for (size_t e = 0; e < found.size(); e++) {
         root["result"][(int32_t)e] = to_json(found[e]);

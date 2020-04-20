@@ -22,6 +22,7 @@ public:
     void update(size_t id, const Robot& robot);
     Entry find(size_t id);
     std::vector<Entry> find_all(const Predicate& p);
+    size_t get_total_entries();
 };
 
 #endif
