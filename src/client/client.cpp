@@ -8,6 +8,7 @@ static const char *HELP = R"(COMMANDS:
     remove     - remove an existing robot in the database
     find       - find an existing robot by its ID
     find-all   - find all robots with matching fields
+    help       - print this message
     quit       - quit the client
 )";
 
