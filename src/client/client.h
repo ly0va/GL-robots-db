@@ -11,16 +11,17 @@ private:
     zmq::socket_t socket;
     Json::FastWriter writer;
     Json::Reader reader;
-    Json::Value send_recv(const std::string& request);
+    Json::Value send_recv(const Json::Value& request);
 public:
     Client(const std::string& host, const std::string& port);
     void mainloop();
-    void ping();
+    bool ping();
     void add();
     void update();
     void remove();
     void find();
     void find_all();
+    void dump();
 };
 
 #endif
