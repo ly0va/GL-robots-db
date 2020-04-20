@@ -15,7 +15,7 @@ private:
 public:
     Client(const std::string& host, const std::string& port);
     void mainloop();
-    bool ping();
+    void ping();
     void add();
     void update();
     void remove();

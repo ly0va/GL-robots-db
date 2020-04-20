@@ -35,10 +35,9 @@ Client::Client(const std::string& host, const std::string& port):
         socket.setsockopt(ZMQ_RCVTIMEO, 5000);
         socket.setsockopt(ZMQ_SNDTIMEO, 5000);
         std::string address = "tcp://" + host + ":" + port;
-        std::cout << "Conntecting to " << address << " ...\n";
+        std::cout << "Connecting to " << address << " ...\n";
         socket.connect(address);
         ping();
-        std::cout << "Conntection established\n";
 }
 
 Json::Value Client::send_recv(const Json::Value& request_json) {
@@ -70,10 +69,10 @@ void Client::mainloop() {
         std::getline(std::cin, cmd);
         try {
                  if (cmd == "help")     std::cout << HELP;
-            else if (cmd == "ping")     ping() && (std::cout << "pong\n");
+            else if (cmd == "ping")     ping();
             else if (cmd == "add")      add();
             else if (cmd == "find")     find();
-            else if (cmd == "search") find_all();
+            else if (cmd == "search")   find_all();
             else if (cmd == "update")   update();
             else if (cmd == "remove")   remove();
             else if (cmd == "dump")     dump();
@@ -86,11 +85,13 @@ void Client::mainloop() {
     } while (cmd != "quit" && !std::cin.eof());
 }
 
-bool Client::ping() {
+void Client::ping() {
     Json::Value request;
     request["command"] = "ping";
     Json::Value response = send_recv(request);
-    return response["status"].asInt() == 200;
+    if (response["status"].asInt() == 200) {
+        std::cout << "Connection is OK\n";
+    }
 }
 
 void Client::find() {
