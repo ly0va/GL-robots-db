@@ -9,8 +9,6 @@ int main(int argc, char **argv) {
         port = argv[1];
     }
     Database db("offsets.db", "robots.db");
-    db.add({123, 3.1415, "Bender"});
-    db.add({100500, 2.71828, "Wall-e"});
     DBConnection db_connection(db);
     zmq::context_t context(1);
     zmq::socket_t socket(context, ZMQ_REP);
@@ -20,8 +18,9 @@ int main(int argc, char **argv) {
         zmq::message_t req;
         socket.recv(&req);
         std::string req_str(static_cast<char*>(req.data()), req.size());
-        std::clog << req_str;
+        std::clog << "<- " << req_str;
         std::string rep_str = db_connection.process(req_str);
+        std::clog << "-> " << rep_str;
         zmq::message_t rep(rep_str.size());
         memcpy(rep.data(), rep_str.c_str(), rep_str.size());
         socket.send(rep);
