@@ -14,7 +14,7 @@ Json::Value to_json(const Entry& entry) {
     return root;
 }
 
-Robot from_json(const Json::Value json) {
+Robot from_json(const Json::Value json) { // TODO: check if all fields are present
     Robot robot;
     robot.price =  json["price"].asInt();
     robot.weight = json["weight"].asFloat();
@@ -33,31 +33,47 @@ Json::Value DBConnection::add(const Json::Value& argument) {
     db.add(robot);
     Json::Value root;
     root["status"] = 200;
-    root["result"] = (int)db.get_total_entries()-1;
+    root["result"] = (int32_t)db.get_total_entries()-1;
     return root;
 }
 
-Json::Value DBConnection::remove(const Json::Value& argument) { // TODO: catch errors
+Json::Value DBConnection::remove(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
-    db.remove(id);
     Json::Value root;
+    try { 
+        db.remove(id);
+    } catch (std::runtime_error& e) {
+        root["status"] = 404;
+        return root;
+    }
     root["status"] = 200;
     return root;
 }
 
-Json::Value DBConnection::update(const Json::Value& argument) { // TODO: catch errors
+Json::Value DBConnection::update(const Json::Value& argument) {
     size_t id = argument["id"].asLargestUInt();
     Robot robot = from_json(argument);
-    db.update(id, robot);
     Json::Value root;
+    try { 
+        db.update(id, robot);
+    } catch (std::runtime_error& e) {
+        root["status"] = 404;
+        return root;
+    }
     root["status"] = 200;
     return root;
 }
 
-Json::Value DBConnection::find(const Json::Value& argument) { // TODO: catch errors
+Json::Value DBConnection::find(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
-    Entry entry = db.find(id);
     Json::Value root;
+    Entry entry;
+    try {
+        entry = db.find(id);
+    } catch (std::runtime_error& e) {
+        root["status"] = 404;
+        return root;
+    }
     root["result"] = to_json(entry);
     root["status"] = 200;
     return root;
@@ -95,7 +111,7 @@ std::string DBConnection::process(const std::string& request) {
     Json::Value command;
     Json::Value response;
     if (!reader.parse(request, command)) {
-        return "{\"status\": 400}";
+        return "{\"status\":400}\n";
     }
     std::string command_type = command["command"].asString();
     Json::Value argument = command["arg"];
@@ -105,7 +121,7 @@ std::string DBConnection::process(const std::string& request) {
     else if (command_type == "find")     response = find(argument);
     else if (command_type == "find_all") response = find_all(argument);
     else if (command_type == "ping")     response = ping(argument);
-    else return "{\"status\": 400}";
+    else return "{\"status\": 400}\n";
     return writer.write(response);
 }
 

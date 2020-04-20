@@ -2,8 +2,8 @@
 #include <fstream>
 #include <iostream>
 
-const auto BIN_APP = std::ofstream::binary | std::ofstream::app;
-const auto BIN_IN = std::ofstream::binary | std::ofstream::in;
+const auto BIN_APP = std::ios::binary | std::ios::app | std::ios::out;
+const auto BIN_IN = std::ios::binary | std::ios::in | std::ios::out;
 
 Database::Database(const char *offset_file, const char *entries_file):
     offset_file(offset_file), entries_file(entries_file) {
@@ -54,27 +54,39 @@ void Database::add(const Robot& robot) {
 }
 
 Entry Database::find(size_t id) {
-    // TODO: error-checking for out of range id and deleted entries
+    if (id >= total_entries) {
+        throw std::runtime_error("ID not found");
+    }
     size_t offset = get_offset(id);
     std::ifstream entries(entries_file, std::ifstream::binary);
     entries.seekg(offset);
     Entry entry;
     entries >> entry;
     entries.close();
+    if (entry.deleted) {
+        throw std::runtime_error("ID is invalid");
+    }
     std::clog << "Found an entry\n";
     return entry;
 }
 
 void Database::remove(size_t id) {
+    if (id >= total_entries) {
+        throw std::runtime_error("ID not found");
+    }
     size_t offset = get_offset(id);
-    std::ofstream entries(entries_file, BIN_IN);
+    std::fstream entries(entries_file, BIN_IN);
+    char deleted;
     entries.seekp(offset);
-    char deleted = 1;
+    entries.read(&deleted, 1);
+    if (deleted) {
+        throw std::runtime_error("ID is invalid");
+    }
+    deleted = 1;
+    entries.seekp(offset);
     entries.write(&deleted, 1);
     entries.close();
     std::clog << "Removed an entry\n";
-    // TODO: check if the entry is already deleted
-    // TODO: check if id is out of range
     // notice, we DO NOT decrement total_entries
 }
 
@@ -97,7 +109,6 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
 }
 
 void Database::update(size_t id, const Robot& robot) {
-    // TODO: check if id is deleted or out of range
     remove(id);
     std::ofstream entries(entries_file, BIN_APP);
     long offset = entries.tellp();

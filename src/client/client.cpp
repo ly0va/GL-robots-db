@@ -7,7 +7,7 @@ static const char *HELP = R"(COMMANDS:
     update     - update an existing robot in the database
     remove     - remove an existing robot in the database
     find       - find an existing robot by its ID
-    find-all   - find all robots with matching field
+    search     - search robots by field
     dump       - print all entries in the database
     help       - print this message
     quit       - quit the client
@@ -20,7 +20,7 @@ static std::string input(const std::string& prompt) {
     return value;
 }
 
-void dump_entry(const Json::Value& entry) {
+static void dump_entry(const Json::Value& entry) {
     std::cout << "  ID: "
         << entry["id"]    << "\n  Name: "
         << entry["name"]  << "\n  Price: "
@@ -62,16 +62,20 @@ void Client::mainloop() {
     do {
         std::cout << ">> ";
         std::getline(std::cin, cmd);
-             if (cmd == "help")     std::cout << HELP;
-        else if (cmd == "ping")     ping() && (std::cout << "pong\n");
-        else if (cmd == "add")      add();
-        else if (cmd == "find")     find();
-        else if (cmd == "find-all") find_all();
-        else if (cmd == "update")   update();
-        else if (cmd == "remove")   remove();
-        else if (cmd == "dump")     dump();
-        else if (cmd != "" && cmd != "quit") {
-            std::cerr << "Invalid command\n";
+        try {
+                 if (cmd == "help")     std::cout << HELP;
+            else if (cmd == "ping")     ping() && (std::cout << "pong\n");
+            else if (cmd == "add")      add();
+            else if (cmd == "find")     find();
+            else if (cmd == "search") find_all();
+            else if (cmd == "update")   update();
+            else if (cmd == "remove")   remove();
+            else if (cmd == "dump")     dump();
+            else if (cmd != "" && cmd != "quit") {
+                std::cerr << "Invalid command\n";
+            }
+        } catch (std::invalid_argument& e) {
+            std::cerr << "Invalid argument: " << e.what() << '\n';
         }
     } while (cmd != "quit" && !std::cin.eof());
 }
