@@ -3,13 +3,17 @@
 
 #include <string>
 #include <zmq.hpp>
+#include <json/json.h>
 
 class Client {
 private:
     zmq::context_t context;
     zmq::socket_t socket;
+    Json::FastWriter writer;
+    Json::Reader reader;
+    Json::Value send_recv(const std::string& request);
 public:
-    Client(std::string host, std::string port);
+    Client(const std::string& host, const std::string& port);
     void mainloop();
     void ping();
     void add();
