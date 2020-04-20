@@ -3,9 +3,9 @@
 #include <cmath>
 #include <json/json.h>
 
-const double EPS = 1e-7;
+const double EPS = 1e-5;
 
-Json::Value to_json(const Entry& entry) {
+static Json::Value to_json(const Entry& entry) {
     Json::Value root;
     root["id"] = (int32_t)entry.id;
     root["price"] = entry.robot.price;
@@ -14,12 +14,22 @@ Json::Value to_json(const Entry& entry) {
     return root;
 }
 
-Robot from_json(const Json::Value json) { // TODO: check if all fields are present
+static Robot from_json(const Json::Value json) {
+    // TODO: check if all fields are present
     Robot robot;
     robot.price =  json["price"].asInt();
     robot.weight = json["weight"].asFloat();
     robot.name =   json["name"].asString();
     return robot;
+}
+
+static bool is_ok(const std::function<void()>& callback) {
+    try {
+        callback();
+        return true;
+    } catch (std::runtime_error& e) {
+        return false;
+    }
 }
 
 Json::Value DBConnection::ping(const Json::Value& argument) {
@@ -40,13 +50,7 @@ Json::Value DBConnection::add(const Json::Value& argument) {
 Json::Value DBConnection::remove(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
     Json::Value root;
-    try { 
-        db.remove(id);
-    } catch (std::runtime_error& e) {
-        root["status"] = 404;
-        return root;
-    }
-    root["status"] = 200;
+    root["status"] = is_ok([&](){db.remove(id);}) ? 200 : 404;
     return root;
 }
 
@@ -54,13 +58,7 @@ Json::Value DBConnection::update(const Json::Value& argument) {
     size_t id = argument["id"].asLargestUInt();
     Robot robot = from_json(argument);
     Json::Value root;
-    try { 
-        db.update(id, robot);
-    } catch (std::runtime_error& e) {
-        root["status"] = 404;
-        return root;
-    }
-    root["status"] = 200;
+    root["status"] = is_ok([&](){db.update(id, robot);}) ? 200 : 404;
     return root;
 }
 
@@ -68,14 +66,12 @@ Json::Value DBConnection::find(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
     Json::Value root;
     Entry entry;
-    try {
-        entry = db.find(id);
-    } catch (std::runtime_error& e) {
+    if (is_ok([&](){entry = db.find(id);})) {
+        root["result"] = to_json(entry);
+        root["status"] = 200;
+    } else {
         root["status"] = 404;
-        return root;
     }
-    root["result"] = to_json(entry);
-    root["status"] = 200;
     return root;
 }
 
