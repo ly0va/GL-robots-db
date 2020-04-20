@@ -31,10 +31,12 @@ static void dump_entry(const Json::Value& entry) {
 
 Client::Client(const std::string& host, const std::string& port):
     context(1), socket(context, ZMQ_REQ) {
+        socket.setsockopt(ZMQ_RCVTIMEO, 5000);
+        socket.setsockopt(ZMQ_SNDTIMEO, 5000);
         std::string address = "tcp://" + host + ":" + port;
         std::cout << "Conntecting to " << address << " ...\n";
         socket.connect(address);
-        assert(ping());
+        ping();
         std::cout << "Conntection established\n";
 }
 
@@ -42,13 +44,16 @@ Json::Value Client::send_recv(const Json::Value& request_json) {
     std::string request_str = writer.write(request_json);
     zmq::message_t request(request_str.size());
     memcpy(request.data(), request_str.c_str(), request_str.size());
-    socket.send(request);
     zmq::message_t reply;
-    socket.recv(&reply);
+    bool send_res = socket.send(request);
+    bool recv_res = socket.recv(&reply);
+    if (send_res == 0 || recv_res == 0) {
+        std::cerr << "Connection timed out\n";
+        exit(1);
+    }
     std::string reply_str(static_cast<char*>(reply.data()), reply.size());
     Json::Value json; 
     reader.parse(reply_str, json);
-    /* std::cout << reply_str << '\n'; */
     if (json["status"].asInt() == 400) {
         throw std::runtime_error("Somehow a bad request was formed");
     }
