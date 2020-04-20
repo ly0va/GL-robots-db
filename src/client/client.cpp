@@ -1,5 +1,6 @@
 #include "client.h"
 #include <iostream>
+#include <iomanip>
 
 static const char *HELP = R"(COMMANDS:
     ping       - check connection to the server
