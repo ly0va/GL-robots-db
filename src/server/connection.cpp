@@ -33,7 +33,7 @@ Json::Value DBConnection::add(const Json::Value& argument) {
     db.add(robot);
     Json::Value root;
     root["status"] = 200;
-    root["result"] = db.get_total_entries()-1;
+    root["result"] = (int)db.get_total_entries()-1;
     return root;
 }
 
