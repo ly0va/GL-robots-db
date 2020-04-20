@@ -34,7 +34,7 @@ To start, run `./server [port]`. Default port is `31111`.
 
 ### Client
 
-To use, run `./client [host:port]`. Default host is `localhost`, default port is `31111`.
+To use, run `./client [host] [port]`. Default host is `localhost`, default port is `31111`.
 
 Using client, you can add/remove/update/find robots in the database. Robot is defined as:
 
