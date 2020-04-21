@@ -62,3 +62,10 @@ Then, time efficiency of the operations can be expressed as
 As per space, whole database is stored in 2 files (instead of 1 file per entry), 
 so there is practically no overhead due to file system block sizes.
 
+## Features
+
+- Basic database operations
+- Time and space efficient
+- Server can handle multiple clients at the same time
+- Endianness-agnostic serialization
+- Crossplatform
