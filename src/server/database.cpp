@@ -1,40 +1,48 @@
 #include "database.h"
-#include <fstream>
+#include <iostream>
 
-const auto BIN_APP = std::ios::binary | std::ios::app | std::ios::out;
-const auto BIN_IN = std::ios::binary | std::ios::in | std::ios::out;
+const auto MODE  = std::ios::binary | std::ios::in  | std::ios::out;
+const auto TOUCH = std::ios::binary | std::ios::app | std::ios::out;
 
 Database::Database(const char *offset_file, const char *entries_file):
-    offset_file(offset_file), entries_file(entries_file) {
-        std::ofstream offsets(offset_file, BIN_APP);
-        std::ofstream entries(entries_file, BIN_APP);
-        if (!offsets.is_open()) {
-            throw std::runtime_error("Unable to open offsets_file");
-        }
-        if (!entries.is_open()) {
-            throw std::runtime_error("Unable to open entries_file");
-        }
-        total_entries = (size_t)offsets.tellp()/sizeof(size_t);
+    offsets(offset_file, TOUCH), entries(entries_file, TOUCH) {
         offsets.close();
         entries.close();
+        offsets.open(offset_file, MODE);
+        entries.open(entries_file, MODE);
+        if (!offsets.is_open()) {
+            std::cerr << "Unable to open offsets file\n";
+            abort();
+        }
+        if (!entries.is_open()) {
+            std::cerr << "Unable to open entries file\n";
+            abort();
+        }
+        offsets.seekp(0, std::ios::end);
+        total_entries = (size_t)offsets.tellp()/sizeof(size_t);
+}
+
+Database::~Database() {
+    if (entries.is_open()) {
+        entries.close();
+    }
+    if (offsets.is_open()) {
+        offsets.close();
+    }
 }
 
 size_t Database::get_offset(size_t id) {
-    std::ifstream offsets(offset_file, std::ifstream::binary);
     const uint8_t size = sizeof(size_t);
     offsets.seekg(id*size);
     char buffer[size];
     offsets.read(buffer, size);
-    offsets.close();
     return *reinterpret_cast<size_t*>(buffer);
 }
 
 void Database::write_offset(size_t offset, size_t index) {
-    std::ofstream offsets(offset_file, BIN_IN);
     const uint8_t size = sizeof(size_t);
     offsets.seekp(index*size);
     offsets.write(reinterpret_cast<char*>(&offset), size);
-    offsets.close();
 }
 
 size_t Database::get_total_entries() {
@@ -42,11 +50,10 @@ size_t Database::get_total_entries() {
 }
 
 void Database::add(const Robot& robot) {
-    std::ofstream entries(entries_file, BIN_APP);
+    entries.seekp(0, std::ios::end);
     long offset = entries.tellp();
     Entry entry = {false, total_entries, robot};
     entries << entry;
-    entries.close();
     write_offset(offset, total_entries++);
 }
 
@@ -55,11 +62,9 @@ Entry Database::find(size_t id) {
         throw std::runtime_error("ID not found");
     }
     size_t offset = get_offset(id);
-    std::ifstream entries(entries_file, std::ifstream::binary);
     entries.seekg(offset);
     Entry entry;
     entries >> entry;
-    entries.close();
     if (entry.deleted) {
         throw std::runtime_error("ID is invalid");
     }
@@ -71,7 +76,6 @@ void Database::remove(size_t id) {
         throw std::runtime_error("ID not found");
     }
     size_t offset = get_offset(id);
-    std::fstream entries(entries_file, BIN_IN);
     char deleted;
     entries.seekp(offset);
     entries.read(&deleted, 1);
@@ -81,12 +85,10 @@ void Database::remove(size_t id) {
     deleted = 1;
     entries.seekp(offset);
     entries.write(&deleted, 1);
-    entries.close();
     // notice, we DO NOT decrement total_entries
 }
 
 std::vector<Entry> Database::find_all(const Predicate& p) {
-    std::ifstream entries(entries_file, std::ifstream::binary);
     entries.seekg(0, std::ios::end);
     long len = entries.tellg();
     entries.seekg(0, std::ios::beg);
@@ -98,16 +100,14 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
             result.push_back(entry);
         }
     }
-    entries.close();
     return result;
 }
 
 void Database::update(size_t id, const Robot& robot) {
     remove(id);
-    std::ofstream entries(entries_file, BIN_APP);
+    entries.seekp(0, std::ios::end);
     long offset = entries.tellp();
     Entry entry = {false, id, robot};
     entries << entry;
-    entries.close();
     write_offset(offset, id);
 }
