@@ -101,6 +101,7 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
     long len = entries.tellg();
     entries.seekg(0, std::ios::beg);
     std::vector<Entry> result;
+    result.reserve(total_entries);
     while (entries.tellg() < len) {
         Entry entry;
         entries >> entry;
