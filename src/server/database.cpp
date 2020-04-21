@@ -45,6 +45,7 @@ void Database::write_offset(size_t offset, size_t index) {
     const uint8_t size = sizeof(size_t);
     offsets.seekp(index*size);
     offsets.write(reinterpret_cast<char*>(&offset), size);
+    offsets.flush();
     assert(!offsets.fail());
 }
 
@@ -90,6 +91,7 @@ void Database::remove(size_t id) {
     deleted = 1;
     entries.seekp(offset);
     entries.write(&deleted, 1);
+    entries.flush();
     assert(!entries.fail());
     // notice, we DO NOT decrement total_entries
 }

@@ -1,22 +1,33 @@
 #include "entry.h"
+#include "endian.h"
 #include <fstream>
+#include <algorithm>
 
 template<typename T> void write(std::ostream& os, T obj) {
-    os.write(reinterpret_cast<char*>(&obj), sizeof(T));
+    char *buffer = reinterpret_cast<char*>(&obj);
+    if (HOST_ORDER == BIG_ENDIAN) {
+        std::reverse(buffer, buffer + sizeof(T));
+    }
+    os.write(buffer, sizeof(T));
 }
 
-std::ostream& operator<<(std::ostream& os, const Entry& robot) {
-    write(os, robot.deleted);
-    write(os, robot.id);
-    write(os, robot.robot.price);
-    write(os, robot.robot.weight);
-    write(os, robot.robot.name.size());
-    return os << robot.robot.name;
+std::ostream& operator<<(std::ostream& os, const Entry& entry) {
+    write(os, entry.deleted);
+    write(os, entry.id);
+    write(os, entry.robot.price);
+    write(os, entry.robot.weight);
+    write(os, entry.robot.name.size());
+    os.write(entry.robot.name.c_str(), entry.robot.name.size());
+    os.flush();
+    return os;
 }
 
 template<typename T> T read(std::istream& is) {
     char buffer[sizeof(T)];
     is.read(buffer, sizeof(T));
+    if (HOST_ORDER == BIG_ENDIAN) {
+        std::reverse(buffer, buffer+sizeof(T));
+    }
     return *reinterpret_cast<T*>(buffer);
 }
 
