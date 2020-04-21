@@ -1,5 +1,6 @@
 #include "database.h"
 #include <iostream>
+#include <cassert>
 
 const auto MODE  = std::ios::binary | std::ios::in  | std::ios::out;
 const auto TOUCH = std::ios::binary | std::ios::app | std::ios::out;
@@ -36,6 +37,7 @@ size_t Database::get_offset(size_t id) {
     offsets.seekg(id*size);
     char buffer[size];
     offsets.read(buffer, size);
+    assert(!offsets.fail());
     return *reinterpret_cast<size_t*>(buffer);
 }
 
@@ -43,6 +45,7 @@ void Database::write_offset(size_t offset, size_t index) {
     const uint8_t size = sizeof(size_t);
     offsets.seekp(index*size);
     offsets.write(reinterpret_cast<char*>(&offset), size);
+    assert(!offsets.fail());
 }
 
 size_t Database::get_total_entries() {
@@ -54,6 +57,7 @@ void Database::add(const Robot& robot) {
     long offset = entries.tellp();
     Entry entry = {false, total_entries, robot};
     entries << entry;
+    assert(!entries.fail());
     write_offset(offset, total_entries++);
 }
 
@@ -65,6 +69,7 @@ Entry Database::find(size_t id) {
     entries.seekg(offset);
     Entry entry;
     entries >> entry;
+    assert(!entries.fail());
     if (entry.deleted) {
         throw std::runtime_error("ID is invalid");
     }
@@ -85,6 +90,7 @@ void Database::remove(size_t id) {
     deleted = 1;
     entries.seekp(offset);
     entries.write(&deleted, 1);
+    assert(!entries.fail());
     // notice, we DO NOT decrement total_entries
 }
 
@@ -100,6 +106,7 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
             result.push_back(entry);
         }
     }
+    assert(!entries.fail());
     return result;
 }
 
@@ -109,5 +116,6 @@ void Database::update(size_t id, const Robot& robot) {
     long offset = entries.tellp();
     Entry entry = {false, id, robot};
     entries << entry;
+    assert(!entries.fail());
     write_offset(offset, id);
 }
