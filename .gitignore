@@ -2,7 +2,5 @@
 *.db
 /.clangd
 /build
-/server
-/client
 /compile_commands.json
 /TODO
