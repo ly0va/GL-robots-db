@@ -23,6 +23,9 @@ After installing dependencies, run:
 ```bash
 git clone https://github.com/lyova-potyomkin/GL-robots-db.git
 cd GL-robots-db
+mkdir build
+cd build
+cmake ..
 make
 ```
 
