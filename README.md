@@ -26,7 +26,7 @@ cd GL-robots-db
 mkdir build
 cd build
 cmake ..
-make
+cmake --build .
 ```
 
 ## Usage
