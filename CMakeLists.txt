@@ -5,7 +5,7 @@ project(GL-robots-db)
 set(CMAKE_CXX_FLAGS "-O2 -Wall -Wno-deprecated-declarations")
 set(CMAKE_EXE_LINKER_FLAGS "-s")
 
-include_directories("include/")
+include_directories("include/" "/usr/include/jsoncpp/")
 
 file(GLOB server_sources "src/server/*.cpp")
 file(GLOB client_sources "src/client/*.cpp")
