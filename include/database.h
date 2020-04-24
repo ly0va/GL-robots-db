@@ -12,6 +12,7 @@ typedef std::function<bool(const Robot&)> Predicate;
 
 class Database {
 private:
+    const char *entries_file;
     std::fstream offsets;
     std::fstream entries;
     size_t total_entries;
@@ -26,6 +27,7 @@ public:
     void update(size_t id, const Robot& robot);
     Entry find(size_t id);
     std::vector<Entry> find_all(const Predicate& p);
+    void cleanup();
     size_t get_total_entries();
 };
 

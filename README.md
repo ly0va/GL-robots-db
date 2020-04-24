@@ -68,6 +68,7 @@ so there is practically no overhead due to file system block sizes.
 ## Features
 
 - Basic database operations
+- Fully stored on the filesystem
 - Time and space efficient
 - LRU cache for faster retrieval
 - Server can handle multiple clients at the same time

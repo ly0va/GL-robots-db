@@ -1,5 +1,3 @@
-*.o
-*.db
 /.clangd
 /build
 /compile_commands.json

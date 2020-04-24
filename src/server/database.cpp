@@ -7,7 +7,8 @@ const auto MODE  = std::ios::binary | std::ios::in  | std::ios::out;
 const auto TOUCH = std::ios::binary | std::ios::app | std::ios::out;
 
 Database::Database(const char *offset_file, const char *entries_file):
-    offsets(offset_file, TOUCH), entries(entries_file, TOUCH), cache(256) {
+    entries_file(entries_file), offsets(offset_file, TOUCH), 
+    entries(entries_file, TOUCH), cache(256) {
         offsets.close();
         entries.close();
         offsets.open(offset_file, MODE);
@@ -129,4 +130,18 @@ void Database::update(size_t id, const Robot& robot) {
     entries << entry;
     assert(!entries.fail());
     write_offset(offset, id);
+}
+
+// costly operation, use rarely
+void Database::cleanup() {
+    std::vector<Entry> all_entries = find_all(
+        [](const Robot& r){ return true; }
+    );
+    entries.close();
+    entries.open(entries_file, std::ios::out);
+    for (const Entry& entry: all_entries) {
+        entries << entry;
+    }
+    entries.close();
+    entries.open(entries_file, MODE);
 }
