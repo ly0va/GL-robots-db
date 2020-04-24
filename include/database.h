@@ -12,7 +12,8 @@ typedef std::function<bool(const Robot&)> Predicate;
 
 class Database {
 private:
-    const char *entries_file;
+    const char *o_filename;
+    const char *e_filename;
     std::fstream offsets;
     std::fstream entries;
     size_t total_entries;

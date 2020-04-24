@@ -28,3 +28,8 @@ void LRUCache::remove(size_t key) {
     lru.erase(cache[key].second);
     cache.erase(key);
 }
+
+void LRUCache::clear() {
+    lru.clear();
+    cache.clear();
+}

@@ -7,8 +7,8 @@ const auto MODE  = std::ios::binary | std::ios::in  | std::ios::out;
 const auto TOUCH = std::ios::binary | std::ios::app | std::ios::out;
 
 Database::Database(const char *offset_file, const char *entries_file):
-    entries_file(entries_file), offsets(offset_file, TOUCH), 
-    entries(entries_file, TOUCH), cache(256) {
+    o_filename(offset_file), e_filename(entries_file),
+    offsets(offset_file, TOUCH), entries(entries_file, TOUCH), cache(256) {
         offsets.close();
         entries.close();
         offsets.open(offset_file, MODE);
@@ -133,15 +133,24 @@ void Database::update(size_t id, const Robot& robot) {
 }
 
 // costly operation, use rarely
+// will renumerate all entries
 void Database::cleanup() {
+    cache.clear();
     std::vector<Entry> all_entries = find_all(
         [](const Robot& r){ return true; }
     );
+    total_entries = all_entries.size();
     entries.close();
-    entries.open(entries_file, std::ios::out);
-    for (const Entry& entry: all_entries) {
-        entries << entry;
+    offsets.close();
+    entries.open(e_filename, std::ios::out | std::ios::binary);
+    offsets.open(o_filename, std::ios::out | std::ios::binary);
+    for (size_t id = 0; id < total_entries; id++) {
+        write_offset(entries.tellp(), id);
+        all_entries[id].id = id;
+        entries << all_entries[id];
     }
     entries.close();
-    entries.open(entries_file, MODE);
+    offsets.close();
+    entries.open(e_filename, MODE);
+    offsets.open(o_filename, MODE);
 }

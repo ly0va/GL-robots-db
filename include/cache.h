@@ -18,6 +18,7 @@ public:
     std::unique_ptr<Robot> find(size_t key);
     void put(size_t key, const Robot& value);
     void remove(size_t key);
+    void clear();
 };
 
 #endif
