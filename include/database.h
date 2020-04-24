@@ -2,6 +2,7 @@
 #define _DATABASE_H_
 
 #include "entry.h"
+#include "cache.h"
 #include <inttypes.h>
 #include <vector>
 #include <functional>
@@ -14,6 +15,7 @@ private:
     std::fstream offsets;
     std::fstream entries;
     size_t total_entries;
+    LRUCache cache;
     size_t get_offset(size_t id);
     void write_offset(size_t offset, size_t index);
 public:

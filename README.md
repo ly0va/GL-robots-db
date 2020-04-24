@@ -69,6 +69,7 @@ so there is practically no overhead due to file system block sizes.
 
 - Basic database operations
 - Time and space efficient
+- LRU cache for faster retrieval
 - Server can handle multiple clients at the same time
 - Endianness-agnostic serialization
 - Crossplatform

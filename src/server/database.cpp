@@ -1,4 +1,5 @@
 #include "database.h"
+#include "cache.h"
 #include <iostream>
 #include <cassert>
 
@@ -6,7 +7,7 @@ const auto MODE  = std::ios::binary | std::ios::in  | std::ios::out;
 const auto TOUCH = std::ios::binary | std::ios::app | std::ios::out;
 
 Database::Database(const char *offset_file, const char *entries_file):
-    offsets(offset_file, TOUCH), entries(entries_file, TOUCH) {
+    offsets(offset_file, TOUCH), entries(entries_file, TOUCH), cache(256) {
         offsets.close();
         entries.close();
         offsets.open(offset_file, MODE);
@@ -54,6 +55,7 @@ size_t Database::get_total_entries() {
 }
 
 void Database::add(const Robot& robot) {
+    cache.put(total_entries, robot);
     entries.seekp(0, std::ios::end);
     long offset = entries.tellp();
     Entry entry = {false, total_entries, robot};
@@ -63,6 +65,10 @@ void Database::add(const Robot& robot) {
 }
 
 Entry Database::find(size_t id) {
+    auto cached = cache.find(id);
+    if (cached != nullptr) {
+        return {false, id, *cached};
+    }
     if (id >= total_entries) {
         throw std::runtime_error("ID not found");
     }
@@ -78,6 +84,7 @@ Entry Database::find(size_t id) {
 }
 
 void Database::remove(size_t id) {
+    cache.remove(id);
     if (id >= total_entries) {
         throw std::runtime_error("ID not found");
     }
@@ -115,6 +122,7 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
 
 void Database::update(size_t id, const Robot& robot) {
     remove(id);
+    cache.put(id, robot);
     entries.seekp(0, std::ios::end);
     long offset = entries.tellp();
     Entry entry = {false, id, robot};
