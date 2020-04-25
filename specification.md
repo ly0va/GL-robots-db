@@ -17,7 +17,7 @@ The list of commands follows.
 
 Request format:
 
-```json
+```javascript
 {
     "command": "add",
     "arg": {
@@ -30,7 +30,7 @@ Request format:
 
 Response format:
 
-```json
+```javascript
 {
     "status": 200,      // 200 if added
     "result": 18        // int, ID of the added robot
@@ -41,7 +41,7 @@ Response format:
 
 Request format:
 
-```json
+```javascript
 {
     "command": "remove",
     "arg":     18         // int, ID of the robot to remove
@@ -50,7 +50,7 @@ Request format:
 
 Response format:
 
-```json
+```javascript
 {
     "status": 200         // 200 if removed, 404 if does not exist
 }
@@ -60,7 +60,7 @@ Response format:
 
 Request format:
 
-```json
+```javascript
 {
     "command": "find",
     "arg":     18       // ID to search robot by
@@ -69,7 +69,7 @@ Request format:
 
 Response format:
 
-```json
+```javascript
 {
     "status": 200,     // 200 if found, 404 if not found
     // if status != 200, result field does not exist
@@ -78,7 +78,7 @@ Response format:
     	"name":   "Name",    // string, Name of the found robot
     	"price":  1000,      // int, price of the found robot
     	"weight": 3.1415     // float, weight of the found robot
-	}
+    }
 }
 ```
 
@@ -86,7 +86,7 @@ Response format:
 
 Request format:
 
-```json
+```javascript
 {
     "command": "update",
     "arg": {
@@ -100,7 +100,7 @@ Request format:
 
 Response format:
 
-```json
+```javascript
 {
     "status": 200   // 200 if updated, 404 if does not exist (nothing to update)
 }
@@ -110,7 +110,7 @@ Response format:
 
 Request format:
 
-```json
+```javascript
 {
     "command": "find_all",
     "arg": {
@@ -126,7 +126,7 @@ Request format:
 
 Response format:
 
-```json
+```javascript
 {
     "status": 200,
     // result is array of matched robots
@@ -152,7 +152,7 @@ Response format:
 
 Request format:
 
-```json
+```javascript
 {
     "command": "ping",
     "arg": null
@@ -161,7 +161,7 @@ Request format:
 
 Response format:
 
-```json
+```javascript
 {
     "status": 200
 }
