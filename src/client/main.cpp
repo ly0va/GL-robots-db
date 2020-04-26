@@ -2,7 +2,8 @@
 #include "client.h"
 
 int main(int argc, char **argv) {
-    std::string host = "localhost", port = "31111";
+    std::string host = "localhost";
+    std::string port = "31111";
     if (argc == 3) {
         host = argv[1];
         port = argv[2];

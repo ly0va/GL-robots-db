@@ -29,7 +29,7 @@ public:
     Entry find(size_t id);
     std::vector<Entry> find_all(const Predicate& p);
     void cleanup();
-    size_t get_total_entries();
+    size_t get_total_entries() const;
 };
 
 #endif

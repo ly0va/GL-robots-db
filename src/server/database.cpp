@@ -5,10 +5,11 @@
 
 const auto MODE  = std::ios::binary | std::ios::in  | std::ios::out;
 const auto TOUCH = std::ios::binary | std::ios::app | std::ios::out;
+const size_t CACHE_SIZE = 256;
 
 Database::Database(const char *offset_file, const char *entries_file):
     o_filename(offset_file), e_filename(entries_file),
-    offsets(offset_file, TOUCH), entries(entries_file, TOUCH), cache(256) {
+    offsets(offset_file, TOUCH), entries(entries_file, TOUCH), cache(CACHE_SIZE) {
         offsets.close();
         entries.close();
         offsets.open(offset_file, MODE);
@@ -51,7 +52,7 @@ void Database::write_offset(size_t offset, size_t index) {
     assert(!offsets.fail());
 }
 
-size_t Database::get_total_entries() {
+size_t Database::get_total_entries() const {
     return total_entries;
 }
 
@@ -90,7 +91,7 @@ void Database::remove(size_t id) {
         throw std::runtime_error("ID not found");
     }
     size_t offset = get_offset(id);
-    char deleted;
+    char deleted = 0;
     entries.seekp(offset);
     entries.read(&deleted, 1);
     if (deleted) {

@@ -10,7 +10,7 @@ public:
     explicit DBConnection(Database& db): db(db) {}
     std::string process(const std::string& request);
 private:
-    Json::Value ping(const Json::Value& command);
+    static Json::Value ping(const Json::Value& command);
     Json::Value add(const Json::Value& command);
     Json::Value remove(const Json::Value& command);
     Json::Value update(const Json::Value& command);

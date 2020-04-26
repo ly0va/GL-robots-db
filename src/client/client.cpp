@@ -1,4 +1,5 @@
 #include "client.h"
+#include "status.h"
 #include <iostream>
 #include <iomanip>
 
@@ -14,16 +15,18 @@ static const char *HELP = R"(COMMANDS:
     quit       - quit the client
 )";
 
+static const int SOCKET_TIMEOUT = 5000;
+
 static std::string input(const std::string& prompt, 
                          const std::string& def_value = "") {
     std::string value;
     std::cout << prompt;
-    if (def_value != "") {
+    if (!def_value.empty()) {
         std::cout << " [" << def_value << "]";
     }
     std::cout << ": ";
     std::getline(std::cin, value);
-    return value == "" ? def_value : value;
+    return value.empty() ? def_value : value;
 }
 
 static void dump_entry(const Json::Value& entry) {
@@ -37,8 +40,8 @@ static void dump_entry(const Json::Value& entry) {
 
 Client::Client(const std::string& host, const std::string& port):
     context(1), socket(context, ZMQ_REQ) {
-        socket.setsockopt(ZMQ_RCVTIMEO, 5000);
-        socket.setsockopt(ZMQ_SNDTIMEO, 5000);
+        socket.setsockopt(ZMQ_RCVTIMEO, SOCKET_TIMEOUT);
+        socket.setsockopt(ZMQ_SNDTIMEO, SOCKET_TIMEOUT);
         std::string address = "tcp://" + host + ":" + port;
         std::cout << "Connecting to " << address << " ...\n";
         socket.connect(address);
@@ -52,14 +55,14 @@ Json::Value Client::send_recv(const Json::Value& request_json) {
     zmq::message_t reply;
     bool send_res = socket.send(request);
     bool recv_res = socket.recv(&reply);
-    if (send_res == 0 || recv_res == 0) {
+    if (!send_res || !recv_res) {
         std::cerr << "Connection timed out\n";
         exit(1);
     }
     std::string reply_str(static_cast<char*>(reply.data()), reply.size());
     Json::Value json; 
     reader.parse(reply_str, json);
-    if (json["status"].asInt() == 400) {
+    if (json["status"].asInt() == BAD_REQUEST) {
         throw std::runtime_error("Somehow a bad request was formed");
     }
     return json;
@@ -94,7 +97,7 @@ void Client::ping() {
     Json::Value request;
     request["command"] = "ping";
     Json::Value response = send_recv(request);
-    if (response["status"].asInt() == 200) {
+    if (response["status"].asInt() == OK) {
         std::cout << "Connection is OK\n";
     }
 }
@@ -105,9 +108,9 @@ void Client::find() {
     request["arg"] = std::stoi(input("ID (int)"));
     Json::Value response = send_recv(request);
     int32_t status = response["status"].asInt();
-    if (status == 404) {
+    if (status == NOT_FOUND) {
         std::cout << "No entry with given ID\n";
-    } else if (status == 200) {
+    } else if (status == OK) {
         std::cout << "Found 1 entry:\n";
         dump_entry(response["result"]);
     }
@@ -119,9 +122,9 @@ void Client::remove() {
     request["arg"] = std::stoi(input("ID (int)"));
     Json::Value response = send_recv(request);
     int32_t status = response["status"].asInt();
-    if (status == 200) {
+    if (status == OK) {
         std::cout << "Successfully removed an entry\n";
-    } else if (status == 404) {
+    } else if (status == NOT_FOUND) {
         std::cout << "Requested entry was not found\n";
     }
 }
@@ -134,7 +137,7 @@ void Client::add() {
     request["arg"]["weight"] = std::stod(input("Weight (float)"));
     Json::Value response = send_recv(request);
     int32_t status = response["status"].asInt();
-    if (status == 200) {
+    if (status == OK) {
         std::cout << "New robot added with ID = " << response["result"] << '\n';
     }
 }
@@ -146,10 +149,9 @@ void Client::update() {
     request["arg"] = id;
     Json::Value response = send_recv(request);
     int32_t status = response["status"].asInt();
-    if (status == 404) {
+    if (status == NOT_FOUND) {
         std::cout << "No entry with given ID\n";
-        return;
-    } else if (status == 200) {
+    } else if (status == OK) {
         std::string old_name = response["result"]["name"].asString();
         std::string old_price = response["result"]["price"].asString();
         std::stringstream ss;
@@ -164,9 +166,9 @@ void Client::update() {
         request["arg"]["weight"] = std::stod(input("New weight (float)", old_weight));
         Json::Value response = send_recv(request);
         int32_t status = response["status"].asInt();
-        if (status == 200) {
+        if (status == OK) {
             std::cout << "Successfully updated an entry\n";
-        } else if (status == 404) {
+        } else if (status == NOT_FOUND) {
             std::cout << "Requested entry was not found\n";
         }
     }
@@ -189,7 +191,7 @@ void Client::find_all() {
     }
     Json::Value response = send_recv(request);
     int32_t status = response["status"].asInt();
-    if (status == 200) {
+    if (status == OK) {
         std::cout << "Found " << response["result"].size() << " entries\n";
         for (const auto& entry: response["result"]) {
             dump_entry(entry);
@@ -204,7 +206,7 @@ void Client::dump() {
     request["arg"] = Json::objectValue;
     Json::Value response = send_recv(request);
     int32_t status = response["status"].asInt();
-    if (status == 200) {
+    if (status == OK) {
         std::cout << "Found " << response["result"].size() << " entries\n";
         for (const auto& entry: response["result"]) {
             dump_entry(entry);

@@ -1,5 +1,6 @@
 #include "connection.h"
 #include "database.h"
+#include "status.h"
 #include <cmath>
 #include <json/json.h>
 
@@ -14,7 +15,7 @@ static Json::Value to_json(const Entry& entry) {
     return root;
 }
 
-static Robot from_json(const Json::Value json) {
+static Robot from_json(const Json::Value& json) {
     // TODO: check if all fields are present
     Robot robot;
     robot.price =  json["price"].asInt();
@@ -34,7 +35,7 @@ static bool is_ok(const std::function<void()>& callback) {
 
 Json::Value DBConnection::ping(const Json::Value& argument) {
     Json::Value root;
-    root["status"] = 200;
+    root["status"] = OK;
     return root;
 }
 
@@ -42,7 +43,7 @@ Json::Value DBConnection::add(const Json::Value& argument) {
     Robot robot = from_json(argument);
     db.add(robot);
     Json::Value root;
-    root["status"] = 200;
+    root["status"] = OK;
     root["result"] = (int32_t)db.get_total_entries()-1;
     return root;
 }
@@ -50,7 +51,7 @@ Json::Value DBConnection::add(const Json::Value& argument) {
 Json::Value DBConnection::remove(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
     Json::Value root;
-    root["status"] = is_ok([&](){db.remove(id);}) ? 200 : 404;
+    root["status"] = is_ok([&](){db.remove(id);}) ? OK : NOT_FOUND;
     return root;
 }
 
@@ -58,7 +59,7 @@ Json::Value DBConnection::update(const Json::Value& argument) {
     size_t id = argument["id"].asLargestUInt();
     Robot robot = from_json(argument);
     Json::Value root;
-    root["status"] = is_ok([&](){db.update(id, robot);}) ? 200 : 404;
+    root["status"] = is_ok([&](){db.update(id, robot);}) ? OK : NOT_FOUND;
     return root;
 }
 
@@ -68,9 +69,9 @@ Json::Value DBConnection::find(const Json::Value& argument) {
     Entry entry;
     if (is_ok([&](){entry = db.find(id);})) {
         root["result"] = to_json(entry);
-        root["status"] = 200;
+        root["status"] = OK;
     } else {
-        root["status"] = 404;
+        root["status"] = NOT_FOUND;
     }
     return root;
 }
@@ -87,14 +88,14 @@ Json::Value DBConnection::find_all(const Json::Value& argument) {
         };
     } else if (argument.isMember("weight")) {
         predicate = [&](const Robot& r) {
-            return fabs(r.weight - argument["weight"].asFloat()) < EPS;
+            return std::fabs(r.weight - argument["weight"].asFloat()) < EPS;
         };
     } else {
         predicate = [](const Robot& r) { return true; };
     }
     std::vector<Entry> found = db.find_all(predicate);
     Json::Value root;
-    root["status"] = 200;
+    root["status"] = OK;
     root["result"] = Json::arrayValue;
     root["result"].resize(found.size());
     for (size_t e = 0; e < found.size(); e++) {
