@@ -1,14 +1,14 @@
 #include "cache.h"
 
-std::unique_ptr<Robot> LRUCache::find(size_t key) {
+std::optional<Robot> LRUCache::find(size_t key) {
     if (!cache.count(key)) {
-        return nullptr;
+        return {};
     }
     const auto& p = cache[key];
     lru.erase(p.second);
     lru.push_back(key);
     cache[key] = {p.first, --lru.end()};
-    return std::make_unique<Robot>(p.first);
+    return p.first;
 }
 
 void LRUCache::put(size_t key, const Robot& value) {

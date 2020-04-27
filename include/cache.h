@@ -4,9 +4,10 @@
 #include <list>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 #include "entry.h"
 
-typedef std::list<size_t>::iterator ListIt;
+using ListIt = std::list<size_t>::iterator;
 
 class LRUCache {
 private:
@@ -15,7 +16,7 @@ private:
     size_t capacity;
 public:
     explicit LRUCache(size_t capacity): capacity(capacity) {}
-    std::unique_ptr<Robot> find(size_t key);
+    std::optional<Robot> find(size_t key);
     void put(size_t key, const Robot& value);
     void remove(size_t key);
     void clear();

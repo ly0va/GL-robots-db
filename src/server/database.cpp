@@ -68,8 +68,8 @@ void Database::add(const Robot& robot) {
 
 Entry Database::find(size_t id) {
     auto cached = cache.find(id);
-    if (cached != nullptr) {
-        return {false, id, *cached};
+    if (cached != std::nullopt) {
+        return {false, id, cached.value()};
     }
     if (id >= total_entries) {
         throw std::runtime_error("ID not found");
