@@ -66,13 +66,13 @@ void Database::add(const Robot& robot) {
     write_offset(offset, total_entries++);
 }
 
-Entry Database::find(size_t id) {
+std::optional<Entry> Database::find(size_t id) {
     auto cached = cache.find(id);
     if (cached != std::nullopt) {
-        return {false, id, cached.value()};
+        return Entry{false, id, cached.value()};
     }
     if (id >= total_entries) {
-        throw std::runtime_error("ID not found");
+        return {};
     }
     size_t offset = get_offset(id);
     entries.seekg(offset);
@@ -80,28 +80,30 @@ Entry Database::find(size_t id) {
     entries >> entry;
     assert(!entries.fail());
     if (entry.deleted) {
-        throw std::runtime_error("ID is invalid");
+        return {};
     }
     return entry;
 }
 
-void Database::remove(size_t id) {
+// 0 is success
+int8_t Database::remove(size_t id) {
     cache.remove(id);
     if (id >= total_entries) {
-        throw std::runtime_error("ID not found");
+        return 1;
     }
     size_t offset = get_offset(id);
     char deleted = 0;
     entries.seekp(offset);
     entries.read(&deleted, 1);
     if (deleted) {
-        throw std::runtime_error("ID is invalid");
+        return 1;
     }
     deleted = 1;
     entries.seekp(offset);
     entries.write(&deleted, 1);
     entries.flush();
     assert(!entries.fail());
+    return 0;
     // notice, we DO NOT decrement total_entries
 }
 
@@ -122,8 +124,11 @@ std::vector<Entry> Database::find_all(const Predicate& p) {
     return result;
 }
 
-void Database::update(size_t id, const Robot& robot) {
-    remove(id);
+// 0 is success
+int8_t Database::update(size_t id, const Robot& robot) {
+    if (remove(id) != 0) {
+        return 1;
+    }
     cache.put(id, robot);
     entries.seekp(0, std::ios::end);
     long offset = entries.tellp();
@@ -131,6 +136,7 @@ void Database::update(size_t id, const Robot& robot) {
     entries << entry;
     assert(!entries.fail());
     write_offset(offset, id);
+    return 0;
 }
 
 // costly operation, use rarely

@@ -24,15 +24,6 @@ static Robot from_json(const Json::Value& json) {
     return robot;
 }
 
-static bool is_ok(const std::function<void()>& callback) {
-    try {
-        callback();
-        return true;
-    } catch (std::runtime_error& e) {
-        return false;
-    }
-}
-
 Json::Value DBConnection::ping(const Json::Value& argument) {
     Json::Value root;
     root["status"] = OK;
@@ -51,7 +42,7 @@ Json::Value DBConnection::add(const Json::Value& argument) {
 Json::Value DBConnection::remove(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
     Json::Value root;
-    root["status"] = is_ok([&](){db.remove(id);}) ? OK : NOT_FOUND;
+    root["status"] = db.remove(id) == 0 ? OK : NOT_FOUND;
     return root;
 }
 
@@ -59,16 +50,16 @@ Json::Value DBConnection::update(const Json::Value& argument) {
     size_t id = argument["id"].asLargestUInt();
     Robot robot = from_json(argument);
     Json::Value root;
-    root["status"] = is_ok([&](){db.update(id, robot);}) ? OK : NOT_FOUND;
+    root["status"] = db.update(id, robot) == 0 ? OK : NOT_FOUND;
     return root;
 }
 
 Json::Value DBConnection::find(const Json::Value& argument) {
     size_t id = argument.asLargestUInt();
     Json::Value root;
-    Entry entry;
-    if (is_ok([&](){entry = db.find(id);})) {
-        root["result"] = to_json(entry);
+    auto entry = db.find(id);
+    if (entry != std::nullopt) {
+        root["result"] = to_json(entry.value());
         root["status"] = OK;
     } else {
         root["status"] = NOT_FOUND;

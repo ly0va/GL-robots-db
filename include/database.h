@@ -8,7 +8,7 @@
 #include <functional>
 #include <fstream>
 
-typedef std::function<bool(const Robot&)> Predicate;
+using Predicate = std::function<bool(const Robot&)>;
 
 class Database {
 private:
@@ -24,9 +24,9 @@ public:
     Database(const char *offset_file, const char *entries_file);
     ~Database();
     void add(const Robot& robot);
-    void remove(size_t id);
-    void update(size_t id, const Robot& robot);
-    Entry find(size_t id);
+    int8_t remove(size_t id);
+    int8_t update(size_t id, const Robot& robot);
+    std::optional<Entry> find(size_t id);
     std::vector<Entry> find_all(const Predicate& p);
     void cleanup();
     size_t get_total_entries() const;
