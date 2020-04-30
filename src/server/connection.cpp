@@ -24,7 +24,7 @@ static Robot from_json(const Json::Value& json) {
     return robot;
 }
 
-Json::Value DBConnection::ping(const Json::Value& argument) {
+Json::Value DBConnection::ping() {
     Json::Value root;
     root["status"] = OK;
     return root;
@@ -96,22 +96,21 @@ Json::Value DBConnection::find_all(const Json::Value& argument) {
 }
 
 std::string DBConnection::process(const std::string& request) {
+    std::string status404 = "{\"status\":400}\n";
     Json::Value command;
     Json::Value response;
     if (!reader.parse(request, command)) {
-        return "{\"status\":400}\n";
+        return status404;
     }
     std::string command_type = command["command"].asString();
     Json::Value argument = command["arg"];
-         if (command_type == "add")      response = add(argument);
+    if      (command_type == "add")      response = add(argument);
     else if (command_type == "remove")   response = remove(argument);
     else if (command_type == "update")   response = update(argument);
     else if (command_type == "find")     response = find(argument);
     else if (command_type == "find_all") response = find_all(argument);
-    else if (command_type == "ping")     response = ping(argument);
-    else return "{\"status\": 400}\n";
+    else if (command_type == "ping")     response = ping();
+    else return status404;
     return writer.write(response);
 }
-
-
 

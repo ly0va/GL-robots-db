@@ -76,15 +76,15 @@ void Client::mainloop() {
         std::cout << ">> ";
         std::getline(std::cin, cmd);
         try {
-                 if (cmd == "help")     std::cout << HELP;
-            else if (cmd == "ping")     ping();
-            else if (cmd == "add")      add();
-            else if (cmd == "find")     find();
-            else if (cmd == "search")   find_all();
-            else if (cmd == "update")   update();
-            else if (cmd == "remove")   remove();
-            else if (cmd == "dump")     dump();
-            else if (cmd != "" && cmd != "quit") {
+            if      (cmd == "help")   std::cout << HELP;
+            else if (cmd == "ping")   ping();
+            else if (cmd == "add")    add();
+            else if (cmd == "find")   find();
+            else if (cmd == "search") find_all();
+            else if (cmd == "update") update();
+            else if (cmd == "remove") remove();
+            else if (cmd == "dump")   dump();
+            else if (!cmd.empty() && cmd != "quit") {
                 std::cerr << "Invalid command\n";
             }
         } catch (std::invalid_argument& e) {
