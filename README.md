@@ -21,7 +21,7 @@ pacman -S jsoncpp zeromq
 After installing dependencies, run:
 
 ```bash
-git clone https://github.com/lyova-potyomkin/GL-robots-db.git
+git clone https://github.com/ly0va/GL-robots-db.git
 cd GL-robots-db
 mkdir build
 cd build
