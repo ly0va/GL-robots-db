@@ -12,8 +12,8 @@ def random_add(num_entries):
     return {
         "command": "add",
         "arg": {
-            "name": ''.join(name), 
-            "price": random.randint(1, 10**9), 
+            "name": ''.join(name),
+            "price": random.randint(1, 10**9),
             "weight": random.random()
         }
     }

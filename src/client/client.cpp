@@ -17,7 +17,7 @@ static const char *HELP = R"(COMMANDS:
 
 static const int SOCKET_TIMEOUT = 5000;
 
-static std::string input(const std::string& prompt, 
+static std::string input(const std::string& prompt,
                          const std::string& def_value = "") {
     std::string value;
     std::cout << prompt;
@@ -60,7 +60,7 @@ Json::Value Client::send_recv(const Json::Value& request_json) {
         exit(1);
     }
     std::string reply_str(static_cast<char*>(reply.data()), reply.size());
-    Json::Value json; 
+    Json::Value json;
     reader.parse(reply_str, json);
     if (json["status"].asInt() == BAD_REQUEST) {
         throw std::runtime_error("Somehow a bad request was formed");
@@ -155,7 +155,7 @@ void Client::update() {
         std::string old_name = response["result"]["name"].asString();
         std::string old_price = response["result"]["price"].asString();
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(4) 
+        ss << std::fixed << std::setprecision(4)
            << response["result"]["weight"].asFloat();
         std::string old_weight = ss.str();
         request["command"] = "update";

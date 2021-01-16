@@ -62,7 +62,7 @@ Then, time efficiency of the operations can be expressed as
 | ------ | ------ | ------ | ---------- | ------------- |
 | `O(S)` | `O(1)` | `O(S)` | `O(S)`     | `O(T)`        |
 
-As per space, whole database is stored in 2 files (instead of 1 file per entry), 
+As per space, whole database is stored in 2 files (instead of 1 file per entry),
 so there is practically no overhead due to file system block sizes.
 
 ## Features
